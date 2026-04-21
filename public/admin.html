@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>HostelPay — Admin</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fff;--bg2:#f5f5f3;--bg3:#eeede8;
+  --text:#1a1a18;--text2:#6b6b67;--text3:#9b9b97;
+  --border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.22);
+  --blue:#185FA5;--blue-bg:#E6F1FB;--blue-dark:#0C447C;
+  --green:#3B6D11;--green-bg:#EAF3DE;--green-b:#97C459;
+  --amber:#854F0B;--amber-bg:#FAEEDA;--amber-b:#FAC775;
+  --red:#A32D2D;--red-bg:#FCEBEB;--red-b:#F7C1C1;
+  --r:8px;--rl:12px;--font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --mono:'SF Mono','Fira Code',monospace;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2b;
+  --text:#e8e6de;--text2:#9b9b97;--text3:#6b6b67;
+  --border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.2);
+  --blue:#85B7EB;--blue-bg:#0c2a47;--blue-dark:#B5D4F4;
+  --green:#97C459;--green-bg:#1a2e0a;--green-b:#3B6D11;
+  --amber:#EF9F27;--amber-bg:#2e1f06;--amber-b:#854F0B;
+  --red:#F09595;--red-bg:#2e0f0f;--red-b:#A32D2D;
+}}
+body{font-family:var(--font);background:var(--bg3);color:var(--text);min-height:100vh}
+.app{max-width:560px;margin:0 auto;padding:1.25rem 1rem 5rem}
+.logo{font-size:20px;font-weight:700}.logo span{color:var(--blue)}
+.sub{font-size:12px;color:var(--text2);margin-top:2px}
+.card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rl);padding:1.25rem;margin-bottom:1rem}
+.slabel{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text2);margin-bottom:10px}
+.f{margin-bottom:.85rem}.f:last-child{margin-bottom:0}
+.f label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);margin-bottom:5px}
+.f input,.f select,.f textarea{width:100%;padding:10px 12px;border:0.5px solid var(--border2);border-radius:var(--r);font-size:14px;background:var(--bg);color:var(--text);font-family:var(--font);transition:border-color .15s}
+.f input:focus,.f select:focus{outline:none;border-color:var(--blue)}
+.f textarea{resize:none;height:72px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.btn{width:100%;padding:11px;border-radius:var(--r);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;border:none}
+.btn-p{background:var(--text);color:var(--bg);margin-bottom:8px}.btn-p:hover{opacity:.85}.btn-p:disabled{opacity:.4;cursor:not-allowed}
+.btn-o{background:transparent;color:var(--text);border:0.5px solid var(--border2)}.btn-o:hover{background:var(--bg2)}
+.btn-sm{padding:5px 12px;font-size:12px;border-radius:var(--r);cursor:pointer;font-family:var(--font);border:0.5px solid var(--border2);background:transparent;color:var(--text2);transition:all .12s;white-space:nowrap}
+.btn-sm:hover{background:var(--bg2)}.btn-sm.pay{border-color:#B5D4F4;color:var(--blue)}.btn-sm.rej{border-color:var(--red-b);color:var(--red)}.btn-sm.wa{border-color:var(--green-b);color:var(--green)}
+.banner{padding:10px 14px;border-radius:var(--r);font-size:13px;margin-bottom:1rem;display:none}
+.banner.s{background:var(--green-bg);color:var(--green);border:0.5px solid var(--green-b);display:block}
+.banner.w{background:var(--amber-bg);color:var(--amber);border:0.5px solid var(--amber-b);display:block}
+.banner.e{background:var(--red-bg);color:var(--red);border:0.5px solid var(--red-b);display:block}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;font-weight:500}
+.b-paid{background:var(--green-bg);color:var(--green)}.b-review{background:var(--blue-bg);color:var(--blue-dark)}
+.b-rejected{background:var(--red-bg);color:var(--red)}.b-pending{background:var(--amber-bg);color:var(--amber)}
+.b-unpaid{background:var(--red-bg);color:var(--red)}.b-active{background:var(--green-bg);color:var(--green)}
+.b-inactive{background:var(--bg2);color:var(--text2)}
+.tabs{display:flex;gap:3px;background:var(--bg2);border-radius:var(--rl);padding:4px;margin-bottom:1.25rem;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(560px,100%);z-index:100;box-shadow:0 -1px 0 var(--border)}
+.tab{flex:1;padding:7px 3px;text-align:center;font-size:11px;cursor:pointer;border-radius:var(--r);border:none;background:transparent;color:var(--text2);font-family:var(--font);font-weight:400;transition:all .15s}
+.tab.active{background:var(--bg);color:var(--text);font-weight:600;border:0.5px solid var(--border)}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem}
+.stat-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1rem}
+.stat{background:var(--bg2);border-radius:var(--r);padding:10px;text-align:center}
+.stat-v{font-size:18px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}
+.stat-l{font-size:10px;color:var(--text2);margin-top:2px}
+.txn-row{padding:12px 0;border-bottom:0.5px solid var(--border)}
+.txn-row:last-child{border-bottom:none}
+.txn-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.txn-name{font-size:14px;font-weight:600;color:var(--text)}
+.txn-roll{font-size:12px;color:var(--text2);font-family:var(--mono);font-weight:400}
+.txn-meta{font-size:12px;color:var(--text2);margin-top:3px;line-height:1.5}
+.txn-amt{font-size:15px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.txn-acts{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;align-items:center}
+.ss-thumb{width:56px;height:42px;object-fit:cover;border-radius:6px;border:0.5px solid var(--border);cursor:pointer;vertical-align:middle}
+.fb{padding:5px 12px;border-radius:999px;font-size:12px;cursor:pointer;border:0.5px solid var(--border2);background:transparent;color:var(--text2);font-family:var(--font);transition:all .12s}
+.fb.active{background:var(--text);color:var(--bg);border-color:var(--text)}
+.filter-row{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap}
+.exp-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem}
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--text2);font-size:14px}
+.modal-bg{min-height:400px;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;border-radius:var(--rl);margin-bottom:1rem}
+.modal-box{background:var(--bg);border-radius:var(--rl);padding:1rem;max-width:340px;width:90%;border:0.5px solid var(--border)}
+.modal-box img{width:100%;border-radius:var(--r);max-height:300px;object-fit:contain}
+.loader{display:inline-block;width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--text);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.inforow{display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--border);font-size:13px}
+.inforow:last-child{border-bottom:none}
+.inforow span:first-child{color:var(--text2)}
+.inforow span:last-child{font-weight:500}
+.settings-row{display:flex;align-items:center;gap:10px;margin-bottom:.85rem}
+.settings-row label{font-size:13px;color:var(--text2);min-width:130px;flex-shrink:0}
+.settings-row input,.settings-row select{flex:1;padding:9px 12px;border:0.5px solid var(--border2);border-radius:var(--r);font-size:14px;background:var(--bg);color:var(--text);font-family:var(--font)}
+.student-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rl);padding:1rem;margin-bottom:.75rem;cursor:pointer;transition:background .15s}
+.student-card:hover{background:var(--bg2)}
+.student-card.overdue{border-left:3px solid var(--red);border-radius:0 var(--rl) var(--rl) 0}
+.student-card.pending-pay{border-left:3px solid var(--amber);border-radius:0 var(--rl) var(--rl) 0}
+.student-card.paid{border-left:3px solid var(--green-b);border-radius:0 var(--rl) var(--rl) 0}
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:0.5px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-row span:first-child{font-size:13px;color:var(--text)}
+.toggle-row span.sub{font-size:11px;color:var(--text2);display:block;margin-top:2px}
+.toggle{width:40px;height:22px;border-radius:11px;background:var(--border2);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--blue)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s}
+.toggle.on::after{transform:translateX(18px)}
+.lock-screen{background:var(--bg2);border-radius:var(--rl);padding:2.5rem;text-align:center;margin-top:2rem}
+.month-sel{padding:7px 12px;border:0.5px solid var(--border2);border-radius:var(--r);font-size:13px;background:var(--bg);color:var(--text);font-family:var(--font);cursor:pointer}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- LOCK -->
+<div id="lockView">
+  <div style="text-align:center;padding:2rem 0 1rem">
+    <div class="logo" style="font-size:26px">Hostel<span>Pay</span></div>
+    <div class="sub">Admin Console</div>
+  </div>
+  <div class="lock-screen">
+    <p style="font-size:14px;color:var(--text2);margin-bottom:1rem">Enter admin PIN</p>
+    <div class="f" style="max-width:200px;margin:0 auto 1rem">
+      <input type="password" id="pinIn" placeholder="PIN" style="text-align:center;letter-spacing:4px" onkeydown="if(event.key==='Enter')checkPin()"/>
+    </div>
+    <button class="btn btn-p" style="max-width:200px;margin:0 auto" id="pinBtn" onclick="checkPin()">Unlock</button>
+    <div id="pinErr" style="font-size:12px;color:var(--red);margin-top:8px;min-height:18px"></div>
+    <div style="font-size:11px;color:var(--text2);margin-top:10px">Default PIN: 1234</div>
+  </div>
+</div>
+
+<!-- DASH -->
+<div id="dashView" style="display:none">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem">
+    <div><div class="logo">Hostel<span>Pay</span></div><div class="sub" id="propNameDash">Admin</div></div>
+    <button onclick="adminLogout()" style="font-size:12px;padding:5px 12px;border:0.5px solid var(--border2);border-radius:999px;background:transparent;cursor:pointer;color:var(--text2);font-family:var(--font)">Sign out</button>
+  </div>
+
+  <div id="admBanner" class="banner"></div>
+
+  <div id="pg0"></div>
+  <div id="pg1" style="display:none"></div>
+  <div id="pg2" style="display:none"></div>
+  <div id="pg3" style="display:none"></div>
+  <div id="pg4" style="display:none"></div>
+  <div id="pg5" style="display:none"></div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab(0,this)">Pending</button>
+    <button class="tab" onclick="showTab(1,this)">Ledger</button>
+    <button class="tab" onclick="showTab(2,this)">Dash</button>
+    <button class="tab" onclick="showTab(3,this)">Students</button>
+    <button class="tab" onclick="showTab(4,this)">EB</button>
+    <button class="tab" onclick="showTab(5,this)">Settings</button>
+  </div>
+</div>
+
+<!-- Screenshot modal -->
+<div id="modalBg" style="display:none">
+  <div class="modal-bg"><div class="modal-box">
+    <img id="modalImg" src="" alt=""/>
+    <button class="btn btn-o" style="margin-top:10px;font-size:13px;padding:8px" onclick="closeModal()">Close</button>
+  </div></div>
+</div>
+
+<!-- Student profile modal -->
+<div id="profileModal" style="display:none"></div>
+
+</div><!-- app -->
+
+<script>
+const API='';
+let adminToken=localStorage.getItem('hp_admin_token')||'';
+let activeFilter='All';
+let currentStudentMonth='';
+let allSettings={};
+
+function admH(){return{Authorization:'Bearer '+adminToken,'Content-Type':'application/json'};}
+function admHF(){return{Authorization:'Bearer '+adminToken};}
+
+// ── Auto-login ─────────────────────────────────────────────
+if(adminToken){showDash();}
+
+async function checkPin(){
+  const pin=document.getElementById('pinIn').value;
+  const btn=document.getElementById('pinBtn');
+  btn.disabled=true;btn.innerHTML='<span class="loader"></span>';
+  try{
+    const r=await fetch(`${API}/api/admin/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin})});
+    const data=await r.json();
+    if(!r.ok)throw new Error(data.error);
+    adminToken=data.token;localStorage.setItem('hp_admin_token',adminToken);
+    showDash();
+  }catch(e){
+    document.getElementById('pinErr').textContent=e.message||'Incorrect PIN';
+    setTimeout(()=>document.getElementById('pinErr').textContent='',2500);
+  }finally{btn.disabled=false;btn.textContent='Unlock';}
+}
+
+function adminLogout(){adminToken='';localStorage.removeItem('hp_admin_token');document.getElementById('dashView').style.display='none';document.getElementById('lockView').style.display='block';}
+
+async function showDash(){
+  document.getElementById('lockView').style.display='none';
+  document.getElementById('dashView').style.display='block';
+  // Load settings for prop name
+  try{
+    const r=await fetch(`${API}/api/admin/settings`,{headers:admH()});
+    allSettings=await r.json();
+    document.getElementById('propNameDash').textContent=allSettings.prop_name||'Admin Console';
+  }catch{}
+  loadTab0();
+}
+
+function showTab(i,el){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');
+  ['pg0','pg1','pg2','pg3','pg4','pg5'].forEach((id,j)=>document.getElementById(id).style.display=j===i?'block':'none');
+  if(i===0)loadTab0();if(i===1)loadTab1();if(i===2)loadTab2();if(i===3)loadTab3();if(i===4)loadTab4();if(i===5)loadTab5();
+}
+
+function admFlash(msg,t){const b=document.getElementById('admBanner');b.textContent=msg;b.className='banner '+t;clearTimeout(b._t);b._t=setTimeout(()=>b.className='banner',5000);}
+function viewSS(url){document.getElementById('modalImg').src=url;document.getElementById('modalBg').style.display='block';}
+function closeModal(){document.getElementById('modalBg').style.display='none';}
+
+function txnCard(t,isPending){
+  const bc=t.status==='Paid'?'b-paid':t.status==='Rejected'?'b-rejected':t.status==='Under review'?'b-review':'b-pending';
+  const ss=t.screenshot_url?`<img src="${t.screenshot_url}" class="ss-thumb" onclick="viewSS('${t.screenshot_url}')"/>`:'<span style="font-size:11px;color:var(--amber)">No screenshot</span>';
+  const acts=isPending
+    ?`<button class="btn-sm pay" onclick="approve(${t.id})">Mark paid</button><button class="btn-sm rej" onclick="reject(${t.id})">Reject</button>${t.utr?`<span style="font-size:11px;color:var(--text2);font-family:var(--mono)">UTR:${t.utr}</span>`:''}`
+    :`<button class="btn-sm" onclick="delTxn(${t.id})">Delete</button>`;
+  return `<div class="txn-row">
+    <div class="txn-top">
+      <div><div class="txn-name">${t.name} <span class="txn-roll">[${t.roll}]</span></div>
+      <div class="txn-meta">Rm ${t.room} · ${t.fee_type} · ${t.month}</div>
+      <div class="txn-meta">+91${t.phone} · ${t.created_at.split(' ')[0]}</div>
+      ${t.paid_on?`<div class="txn-meta" style="color:var(--green)">Paid: ${t.paid_on}</div>`:''}
+      ${t.rej_reason?`<div class="txn-meta" style="color:var(--red)">Reason: ${t.rej_reason}</div>`:''}</div>
+      <div style="text-align:right"><div class="txn-amt">₹${t.amount.toLocaleString('en-IN')}</div>
+      <div style="margin-top:4px"><span class="badge ${bc}">${t.status}</span></div>
+      <div style="margin-top:6px">${ss}</div></div>
+    </div>
+    <div class="txn-acts">${acts}</div>
+  </div>`;
+}
+
+// ══ TAB 0 — PENDING ══════════════════════════════════════
+async function loadTab0(){
+  const el=document.getElementById('pg0');
+  el.innerHTML='<div class="empty"><span class="loader"></span> Loading…</div>';
+  try{
+    const [statsR,pendR,partR,crR]=await Promise.all([
+      fetch(`${API}/api/admin/stats`,{headers:admH()}),
+      fetch(`${API}/api/admin/pending`,{headers:admH()}),
+      fetch(`${API}/api/admin/partial-requests?status=Pending`,{headers:admH()}),
+      fetch(`${API}/api/admin/change-requests?status=Pending`,{headers:admH()}),
+    ]);
+    const stats=await statsR.json();
+    const pend=await pendR.json();
+    const parts=await partR.json();
+    const crs=await crR.json();
+
+    el.innerHTML=`
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-v">₹${stats.collected.toLocaleString('en-IN')}</div><div class="stat-l">Collected</div></div>
+        <div class="stat"><div class="stat-v">${stats.pending}</div><div class="stat-l">Under review</div></div>
+        <div class="stat"><div class="stat-v">${stats.total}</div><div class="stat-l">Total txns</div></div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-v">${stats.occupied_rooms}</div><div class="stat-l">Occupied rooms</div></div>
+        <div class="stat"><div class="stat-v">${stats.vacant_rooms}</div><div class="stat-l">Vacant rooms</div></div>
+        <div class="stat"><div class="stat-v">${stats.total_rooms}</div><div class="stat-l">Total rooms</div></div>
+      </div>
+      ${pend.length===0&&parts.length===0&&crs.length===0?'<div class="empty">All clear — nothing pending!</div>':''}
+      ${pend.length?`<div class="card"><div class="slabel">Payment submissions (${pend.length})</div>${pend.map(t=>txnCard(t,true)).join('')}</div>`:''}
+      ${parts.length?`<div class="card"><div class="slabel">Partial payment requests (${parts.length})</div>${parts.map(p=>`
+        <div class="txn-row">
+          <div class="txn-top"><div><div class="txn-name">${p.name} <span class="txn-roll">[${p.roll}]</span></div>
+          <div class="txn-meta">${p.fee_type} · ${p.month}</div>
+          <div class="txn-meta">${p.reason}</div></div>
+          <div class="txn-amt">₹${p.amount.toLocaleString('en-IN')}</div></div>
+          <div class="txn-acts">
+            <button class="btn-sm pay" onclick="approvePartial(${p.id})">Approve</button>
+            <button class="btn-sm rej" onclick="rejectPartial(${p.id})">Reject</button>
+          </div>
+        </div>`).join('')}</div>`:''}
+      ${crs.length?`<div class="card"><div class="slabel">Change requests (${crs.length})</div>${crs.map(c=>`
+        <div class="txn-row">
+          <div class="txn-top"><div><div class="txn-name">${c.name} <span class="txn-roll">[${c.roll}]</span></div>
+          <div class="txn-meta">Change <strong>${c.field}</strong>: ${c.old_value} → ${c.new_value}</div>
+          <div class="txn-meta">${c.reason||''}</div></div>
+          <span class="badge b-pending">Pending</span></div>
+          <div class="txn-acts">
+            <button class="btn-sm pay" onclick="approveCR(${c.id})">Approve</button>
+            <button class="btn-sm rej" onclick="rejectCR(${c.id})">Reject</button>
+          </div>
+        </div>`).join('')}</div>`:''}`;
+  }catch(e){el.innerHTML=`<div class="empty">Error loading: ${e.message}</div>`;}
+}
+
+async function approve(id){await fetch(`${API}/api/admin/transactions/${id}/approve`,{method:'PATCH',headers:admH()});admFlash('Marked as paid!','s');loadTab0();}
+async function reject(id){const r=prompt('Reason (optional):')||'';await fetch(`${API}/api/admin/transactions/${id}/reject`,{method:'PATCH',headers:admH(),body:JSON.stringify({reason:r})});admFlash('Rejected.','e');loadTab0();}
+async function delTxn(id){if(!confirm('Delete?'))return;await fetch(`${API}/api/admin/transactions/${id}`,{method:'DELETE',headers:admH()});loadTab1();}
+async function approvePartial(id){await fetch(`${API}/api/admin/partial-requests/${id}/approve`,{method:'PATCH',headers:admH()});admFlash('Partial payment approved.','s');loadTab0();}
+async function rejectPartial(id){const n=prompt('Reason:')||'';await fetch(`${API}/api/admin/partial-requests/${id}/reject`,{method:'PATCH',headers:admH(),body:JSON.stringify({note:n})});admFlash('Rejected.','e');loadTab0();}
+async function approveCR(id){if(!confirm('Apply this change?'))return;await fetch(`${API}/api/admin/change-requests/${id}/approve`,{method:'PATCH',headers:admH()});admFlash('Change applied.','s');loadTab0();}
+async function rejectCR(id){await fetch(`${API}/api/admin/change-requests/${id}/reject`,{method:'PATCH',headers:admH()});admFlash('Rejected.','e');loadTab0();}
+
+// ══ TAB 1 — LEDGER ═══════════════════════════════════════
+async function loadTab1(){
+  const el=document.getElementById('pg1');
+  el.innerHTML='<div class="empty"><span class="loader"></span> Loading…</div>';
+  try{
+    const url=activeFilter==='All'?`${API}/api/admin/transactions`:`${API}/api/admin/transactions?status=${encodeURIComponent(activeFilter)}`;
+    const r=await fetch(url,{headers:admH()});const txns=await r.json();
+    el.innerHTML=`
+      <div class="filter-row">
+        ${['All','Under review','Paid','Rejected'].map(f=>`<button class="fb ${f===activeFilter?'active':''}" onclick="setFilter('${f}',this)">${f}</button>`).join('')}
+      </div>
+      <div class="exp-row">
+        <button class="btn btn-o" onclick="exportFile('csv')" style="font-size:13px;padding:9px">CSV</button>
+        <button class="btn btn-o" onclick="exportFile('xlsx')" style="font-size:13px;padding:9px">Excel (.xlsx)</button>
+      </div>
+      <div class="card">${txns.length===0?'<div class="empty">No records.</div>':txns.map(t=>txnCard(t,false)).join('')}</div>`;
+  }catch(e){el.innerHTML=`<div class="empty">Error: ${e.message}</div>`;}
+}
+function setFilter(f,el){activeFilter=f;document.querySelectorAll('#pg1 .fb').forEach(b=>b.classList.remove('active'));el.classList.add('active');loadTab1();}
+function exportFile(type){const t=localStorage.getItem('hp_admin_token')||adminToken;if(!t){alert('Please log in first.');return;}window.open(`${API}/api/admin/export/${type}?token=${encodeURIComponent(t)}`);}
+
+// ══ TAB 2 — DASHBOARD ════════════════════════════════════
+async function loadTab2(){
+  const el=document.getElementById('pg2');
+  el.innerHTML='<div class="empty"><span class="loader"></span> Loading…</div>';
+  try{
+    const [statsR,txnsR]=await Promise.all([
+      fetch(`${API}/api/admin/stats`,{headers:admH()}),
+      fetch(`${API}/api/admin/transactions`,{headers:admH()}),
+    ]);
+    const stats=await statsR.json();const txns=await txnsR.json();
+
+    // Monthly collection
+    const map={};
+    txns.filter(t=>t.status==='Paid').forEach(t=>{const k=t.month||t.created_at.substring(0,7);map[k]=(map[k]||0)+t.amount;});
+    const months=Object.keys(map).slice(-6);const amounts=months.map(m=>map[m]);
+
+    el.innerHTML=`
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-v">₹${stats.collected.toLocaleString('en-IN')}</div><div class="stat-l">Total collected</div></div>
+        <div class="stat"><div class="stat-v">${stats.pending}</div><div class="stat-l">Pending</div></div>
+        <div class="stat"><div class="stat-v">${stats.total}</div><div class="stat-l">Transactions</div></div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-v">${stats.occupied_rooms}</div><div class="stat-l">Occupied</div></div>
+        <div class="stat"><div class="stat-v">${stats.vacant_rooms}</div><div class="stat-l">Vacant</div></div>
+        <div class="stat"><div class="stat-v">${stats.total_rooms}</div><div class="stat-l">Total rooms</div></div>
+      </div>
+      <div class="card" style="margin-bottom:1rem">
+        <div class="slabel">Monthly collection</div>
+        <canvas id="monthChart" height="160"></canvas>
+      </div>
+      <div class="card">
+        <div class="slabel">Recent payments</div>
+        ${txns.slice(0,5).map(t=>{
+          const bc=t.status==='Paid'?'b-paid':t.status==='Rejected'?'b-rejected':'b-review';
+          return `<div class="txn-row"><div class="txn-top">
+            <div><div class="txn-name">${t.name} <span class="txn-roll">[${t.roll}]</span></div>
+            <div class="txn-meta">${t.fee_type} · ${t.month}</div></div>
+            <div style="text-align:right"><div class="txn-amt">₹${t.amount.toLocaleString('en-IN')}</div>
+            <span class="badge ${bc}">${t.status}</span></div>
+          </div></div>`;
+        }).join('')}
+      </div>`;
+
+    if(months.length){
+      const ctx=document.getElementById('monthChart').getContext('2d');
+      new Chart(ctx,{type:'bar',data:{labels:months,datasets:[{data:amounts,backgroundColor:'rgba(24,95,165,.15)',borderColor:'#185FA5',borderWidth:1.5,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'₹'+v.toLocaleString('en-IN'),font:{size:10}},grid:{color:'rgba(128,128,128,.1)'}},x:{ticks:{font:{size:10}},grid:{display:false}}}}});
+    }
+  }catch(e){el.innerHTML=`<div class="empty">Error: ${e.message}</div>`;}
+}
+
+// ══ TAB 3 — STUDENTS ═════════════════════════════════════
+async function loadTab3(){
+  const el=document.getElementById('pg3');
+  el.innerHTML='<div class="empty"><span class="loader"></span> Loading…</div>';
+  try{
+    // Month selector
+    const now=new Date();
+    const months=[];
+    for(let i=0;i<6;i++){
+      const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+      const m=d.toLocaleString('en-IN',{month:'long',year:'numeric'});months.push(m);
+    }
+    if(!currentStudentMonth)currentStudentMonth=months[0];
+
+    const r=await fetch(`${API}/api/admin/students?month=${encodeURIComponent(currentStudentMonth)}`,{headers:admH()});
+    const students=await r.json();
+    const dueDay=parseInt(allSettings.due_day)||5;
+    const today=new Date().getDate();
+    const isOverdue=today>dueDay;
+
+    const paid=students.filter(s=>s.month_status==='paid').length;
+    const pending=students.filter(s=>s.month_status==='pending').length;
+    const unpaid=students.filter(s=>s.month_status==='no_record'&&s.active).length;
+
+    el.innerHTML=`
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;flex-wrap:wrap">
+        <select class="month-sel" onchange="currentStudentMonth=this.value;loadTab3()">
+          ${months.map(m=>`<option ${m===currentStudentMonth?'selected':''}>${m}</option>`).join('')}
+        </select>
+        <button class="btn-sm pay" onclick="showAddStudent()" style="padding:7px 14px">+ Add student</button>
+        <button class="btn-sm wa" onclick="broadcastWhatsApp()">Broadcast WA</button>
+      </div>
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-v" style="color:var(--green)">${paid}</div><div class="stat-l">Paid</div></div>
+        <div class="stat"><div class="stat-v" style="color:var(--amber)">${pending}</div><div class="stat-l">Pending</div></div>
+        <div class="stat"><div class="stat-v" style="color:var(--red)">${unpaid}</div><div class="stat-l">Unpaid</div></div>
+      </div>
+      ${students.length===0?'<div class="empty">No students added yet.</div>':students.map(s=>{
+        const cls=s.month_status==='paid'?'paid':s.month_status==='pending'?'pending-pay':isOverdue&&s.active?'overdue':'';
+        const statusBadge=s.month_status==='paid'?'<span class="badge b-paid">Paid</span>':s.month_status==='pending'?'<span class="badge b-review">Pending</span>':s.active?`<span class="badge b-unpaid">${isOverdue?'Overdue':'Unpaid'}</span>`:'<span class="badge b-inactive">Inactive</span>';
+        return `<div class="student-card ${cls}" onclick="openStudentProfile(${s.id})">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <div style="font-size:14px;font-weight:600">${s.name}</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:2px">Rm ${s.room_number||'?'} · ${s.roll}</div>
+              <div style="font-size:12px;color:var(--text2)">+91 ${s.phone} · Joined: ${s.joined_at||'?'}</div>
+            </div>
+            <div style="text-align:right">
+              ${statusBadge}
+              <div style="font-size:11px;color:var(--text2);margin-top:4px">₹${(s.monthly_rent||0).toLocaleString('en-IN')}/mo</div>
+              ${s.active?`<button class="btn-sm wa" style="margin-top:6px" onclick="event.stopPropagation();waReminder(${s.id},'${s.name}','${s.phone}','${s.monthly_rent||0}')">Remind</button>`:''}
+            </div>
+          </div>
+        </div>`;
+      }).join('')}`;
+  }catch(e){el.innerHTML=`<div class="empty">Error: ${e.message}</div>`;}
+}
+
+function waReminder(id,name,phone,rent){
+  const waNum=allSettings.wa_number||'';
+  const studentWa=phone.replace(/\D/g,'');
+  const num=studentWa.length===10?'91'+studentWa:studentWa;
+  const msg=`Dear ${name},\n\nYour rent of ₹${parseInt(rent).toLocaleString('en-IN')} for ${currentStudentMonth} is pending. Please pay at the earliest and upload the screenshot in the HostelPay portal.\n\nThanks,\n${allSettings.prop_name||'Hostel Admin'}`;
+  const a=document.createElement('a');a.href=`https://wa.me/${num}?text=${encodeURIComponent(msg)}`;a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+
+async function broadcastWhatsApp(){
+  const r=await fetch(`${API}/api/admin/students`,{headers:admH()});
+  const students=await r.json();
+  const active=students.filter(s=>s.active&&s.phone);
+  const msg=prompt(`Broadcast to ${active.length} students.\n\nType your message:`);
+  if(!msg||!msg.trim())return;
+  const full=`[${allSettings.prop_name||'Hostel'}] ${msg.trim()}`;
+  active.forEach(s=>{
+    const num=s.phone.length===10?'91'+s.phone:s.phone;
+    setTimeout(()=>{
+      const a=document.createElement('a');a.href=`https://wa.me/${num}?text=${encodeURIComponent(full)}`;a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();document.body.removeChild(a);
+    },active.indexOf(s)*800);
+  });
+  await fetch(`${API}/api/admin/broadcast`,{method:'POST',headers:admH(),body:JSON.stringify({message:full,recipient_count:active.length})});
+  admFlash(`Broadcast sent to ${active.length} students.`,'s');
+}
+
+function showAddStudent(){
+  const html=`<div class="card">
+    <div class="slabel">Add new student</div>
+    <div class="row2">
+      <div class="f"><label>Full name</label><input id="asName" placeholder="Ravi Kumar"/></div>
+      <div class="f"><label>Roll number</label><input id="asRoll" placeholder="CS2021042" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"/></div>
+    </div>
+    <div class="row2">
+      <div class="f"><label>Phone (10 digits)</label><input id="asPhone" type="tel" maxlength="10" placeholder="9876543210" oninput="this.value=this.value.replace(/[^0-9]/g,'')"/></div>
+      <div class="f"><label>Join date</label><input id="asJoined" type="date"/></div>
+    </div>
+    <div class="row2">
+      <div class="f"><label>Room</label>
+        <select id="asRoom"><option value="">Select room</option></select>
+      </div>
+      <div class="f"><label>Advance paid (₹)</label><input id="asAdvance" type="number" value="15000"/></div>
+    </div>
+    <div class="f"><label>Admin notes</label><textarea id="asNotes" placeholder="Optional private notes…"></textarea></div>
+    <div id="asBanner" class="banner"></div>
+    <button class="btn btn-p" onclick="submitAddStudent()">Add student</button>
+    <button class="btn btn-o" onclick="loadTab3()">Cancel</button>
+  </div>`;
+  document.getElementById('pg3').innerHTML=html;
+  // Load rooms
+  fetch(`${API}/api/admin/rooms`,{headers:admH()}).then(r=>r.json()).then(rooms=>{
+    const sel=document.getElementById('asRoom');
+    rooms.forEach(r=>{const o=document.createElement('option');o.value=r.id;o.textContent=`Rm ${r.room_number} (${r.room_type}) · ${r.current_occupancy}/${r.max_occupancy}`;sel.appendChild(o);});
+  });
+  document.getElementById('asJoined').value=new Date().toISOString().split('T')[0];
+}
+
+async function submitAddStudent(){
+  const name=document.getElementById('asName').value.trim();
+  const roll=document.getElementById('asRoll').value.trim().toUpperCase();
+  const phone=document.getElementById('asPhone').value.trim();
+  const room_id=document.getElementById('asRoom').value||null;
+  const joined_at=document.getElementById('asJoined').value;
+  const advance_paid=document.getElementById('asAdvance').value;
+  const notes=document.getElementById('asNotes').value.trim();
+  if(!name||!roll||!phone){document.getElementById('asBanner').textContent='Name, roll and phone required.';document.getElementById('asBanner').className='banner e';return;}
+  try{
+    const r=await fetch(`${API}/api/admin/students`,{method:'POST',headers:admH(),body:JSON.stringify({name,roll,phone,room_id,joined_at,advance_paid,notes})});
+    const data=await r.json();
+    if(!r.ok)throw new Error(data.error);
+    alert(`Student added!\n\nDefault password: ${data.temp_password}\n\nShare this with ${name}.`);
+    loadTab3();
+  }catch(e){document.getElementById('asBanner').textContent=e.message;document.getElementById('asBanner').className='banner e';}
+}
+
+async function openStudentProfile(id){
+  document.getElementById('pg3').innerHTML='<div class="empty"><span class="loader"></span> Loading profile…</div>';
+  try{
+    const r=await fetch(`${API}/api/admin/students/${id}`,{headers:admH()});
+    const data=await r.json();
+    const s=data.student;const txns=data.transactions;const crs=data.change_requests;
+    const advance_remaining=s.advance_remaining||0;
+    const refundable=s.refundable||0;
+    document.getElementById('pg3').innerHTML=`
+      <button class="btn-sm" onclick="loadTab3()" style="margin-bottom:1rem">← Back</button>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+          <div>
+            <div style="font-size:18px;font-weight:700">${s.name}</div>
+            <div style="font-size:13px;color:var(--text2)">${s.roll} · Rm ${s.room_number||'?'} · +91${s.phone}</div>
+          </div>
+          <span class="badge ${s.active?'b-active':'b-inactive'}">${s.active?'Active':'Inactive'}</span>
+        </div>
+        <div class="inforow"><span>Room type</span><span>${s.room_type||'?'}</span></div>
+        <div class="inforow"><span>Monthly rent</span><span style="font-weight:700;color:var(--blue)">₹${(s.monthly_rent||0).toLocaleString('en-IN')}</span></div>
+        <div class="inforow"><span>Joined</span><span>${s.joined_at||'?'}</span></div>
+        <div class="inforow"><span>Last login</span><span>${s.last_login||'Never'}</span></div>
+        <div class="inforow"><span>Legacy pricing</span><span>${s.is_legacy_pricing?'Yes (fixed)':'No (dynamic)'}</span></div>
+      </div>
+      <div class="card">
+        <div class="slabel">Financial summary</div>
+        <div class="inforow"><span>Total paid (all time)</span><span style="color:var(--green);font-weight:700">₹${(s.total_paid||0).toLocaleString('en-IN')}</span></div>
+        <div class="inforow"><span>Advance paid</span><span>₹${(s.advance_paid||0).toLocaleString('en-IN')}</span></div>
+        <div class="inforow"><span>Advance used</span><span>₹${(s.advance_used||0).toLocaleString('en-IN')}</span></div>
+        <div class="inforow"><span>Advance remaining</span><span>₹${advance_remaining.toLocaleString('en-IN')}</span></div>
+        <div class="inforow"><span>Held by hostel</span><span>₹${(s.base_hold||5000).toLocaleString('en-IN')}</span></div>
+        <div class="inforow"><span style="font-weight:600">Refundable on exit</span><span style="color:var(--green);font-weight:700">₹${refundable.toLocaleString('en-IN')}</span></div>
+      </div>
+      <div class="card">
+        <div class="slabel">Edit details</div>
+        <div class="row2">
+          <div class="f"><label>Name</label><input id="edName" value="${s.name}"/></div>
+          <div class="f"><label>Roll</label><input id="edRoll" value="${s.roll}" style="text-transform:uppercase"/></div>
+        </div>
+        <div class="row2">
+          <div class="f"><label>Phone</label><input id="edPhone" value="${s.phone}" maxlength="10"/></div>
+          <div class="f"><label>Monthly rent (₹)</label><input id="edRent" type="number" value="${s.monthly_rent||0}"/></div>
+        </div>
+        <div class="row2">
+          <div class="f"><label>Advance paid (₹)</label><input id="edAdvance" type="number" value="${s.advance_paid||15000}"/></div>
+          <div class="f"><label>Advance used (₹)</label><input id="edAdvUsed" type="number" value="${s.advance_used||0}"/></div>
+        </div>
+        <div class="f"><label>Notes (private)</label><textarea id="edNotes">${s.notes||''}</textarea></div>
+        <div class="row2" style="margin-bottom:.85rem">
+          <div>
+            <div style="font-size:13px;color:var(--text2);margin-bottom:5px">Status</div>
+            <select id="edActive" style="width:100%;padding:10px 12px;border:0.5px solid var(--border2);border-radius:var(--r);font-size:14px;background:var(--bg);color:var(--text)">
+              <option value="1" ${s.active?'selected':''}>Active</option>
+              <option value="0" ${!s.active?'selected':''}>Inactive</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:13px;color:var(--text2);margin-bottom:5px">Legacy pricing</div>
+            <select id="edLegacy" style="width:100%;padding:10px 12px;border:0.5px solid var(--border2);border-radius:var(--r);font-size:14px;background:var(--bg);color:var(--text)">
+              <option value="0" ${!s.is_legacy_pricing?'selected':''}>Dynamic</option>
+              <option value="1" ${s.is_legacy_pricing?'selected':''}>Legacy fixed</option>
+            </select>
+          </div>
+        </div>
+        <div id="editBanner" class="banner"></div>
+        <button class="btn btn-p" onclick="saveStudentEdit(${s.id})">Save changes</button>
+        <button class="btn btn-o" onclick="resetStudentPassword(${s.id},'${s.roll}')" style="margin-top:8px">Reset password</button>
+      </div>
+      <div class="card">
+        <div class="slabel">Payment history (${txns.length})</div>
+        ${txns.length===0?'<div class="empty">No payments.</div>':txns.map(t=>{
+          const bc=t.status==='Paid'?'b-paid':t.status==='Rejected'?'b-rejected':'b-review';
+          return `<div class="txn-row"><div class="txn-top">
+            <div><div style="font-weight:600">${t.fee_type} <span class="badge ${bc}">${t.status}</span></div>
+            <div class="txn-meta">${t.month} · ${t.created_at.split(' ')[0]}</div>
+            ${t.utr?`<div class="txn-meta" style="font-family:var(--mono)">UTR:${t.utr}</div>`:''}
+            ${t.paid_on?`<div class="txn-meta" style="color:var(--green)">Paid: ${t.paid_on}</div>`:''}
+            ${t.rej_reason?`<div class="txn-meta" style="color:var(--red)">${t.rej_reason}</div>`:''}</div>
+            <div class="txn-amt">₹${t.amount.toLocaleString('en-IN')}</div>
+          </div></div>`;
+        }).join('')}
+      </div>
+      ${crs.length?`<div class="card"><div class="slabel">Change requests</div>${crs.map(c=>`
+        <div class="txn-row"><div class="txn-top">
+          <div><div style="font-weight:600">${c.field}: ${c.old_value} → ${c.new_value}</div>
+          <div class="txn-meta">${c.reason||''} · ${c.created_at.split(' ')[0]}</div></div>
+          <span class="badge ${c.status==='Pending'?'b-pending':c.status==='Approved'?'b-paid':'b-rejected'}">${c.status}</span>
+        </div></div>`).join('')}</div>`:''}`;
+  }catch(e){document.getElementById('pg3').innerHTML=`<div class="empty">Error: ${e.message}</div>`;}
+}
+
+async function saveStudentEdit(id){
+  const body={
+    name:document.getElementById('edName').value.trim(),
+    roll:document.getElementById('edRoll').value.trim().toUpperCase(),
+    phone:document.getElementById('edPhone').value.trim(),
+    monthly_rent:parseFloat(document.getElementById('edRent').value)||0,
+    advance_paid:parseFloat(document.getElementById('edAdvance').value)||0,
+    advance_used:parseFloat(document.getElementById('edAdvUsed').value)||0,
+    notes:document.getElementById('edNotes').value.trim(),
+    active:parseInt(document.getElementById('edActive').value),
+    is_legacy_pricing:parseInt(document.getElementById('edLegacy').value),
+  };
+  try{
+    const r=await fetch(`${API}/api/admin/students/${id}`,{method:'PATCH',headers:admH(),body:JSON.stringify(body)});
+    const data=await r.json();
+    if(!r.ok)throw new Error(data.error);
+    const b=document.getElementById('editBanner');b.textContent='Saved!';b.className='banner s';
+    setTimeout(()=>b.className='banner',3000);
+  }catch(e){const b=document.getElementById('editBanner');b.textContent=e.message;b.className='banner e';}
+}
+
+async function resetStudentPassword(id,roll){
+  if(!confirm(`Reset password for this student to their roll number (${roll})?`))return;
+  const r=await fetch(`${API}/api/admin/students/${id}/reset-password`,{method:'POST',headers:admH()});
+  const data=await r.json();
+  alert(`Password reset!\n\nNew temp password: ${data.temp_password}\n\nShare this with the student.`);
+}
+
+// ══ TAB 4 — EB ═══════════════════════════════════════════
+async function loadTab4(){
+  const el=document.getElementById('pg4');
+  el.innerHTML='<div class="empty"><span class="loader"></span> Loading…</div>';
+  try{
+    const r=await fetch(`${API}/api/admin/eb`,{headers:admH()});
+    const rooms=await r.json();
+    const rate=parseFloat(allSettings.eb_rate_per_unit)||0;
+    el.innerHTML=`
+      <div class="banner w" style="display:block;margin-bottom:1rem">
+        EB rate: <strong>₹${rate}/unit</strong> · Change in Settings tab
+      </div>
+      ${rooms.map(rm=>{
+        const pending=rm.pending_reading;const latest=rm.latest_reading;
+        return `<div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+            <div><div style="font-weight:600">Room ${rm.room_number}</div>
+            <div style="font-size:12px;color:var(--text2)">${rm.room_type} · ${rm.occupants} occupants</div></div>
+            ${latest?`<div style="text-align:right;font-size:12px;color:var(--text2)">Last: ${latest.current_units} units<br>${latest.billing_period}</div>`:'<div style="font-size:12px;color:var(--text2)">No readings yet</div>'}
+          </div>
+          ${pending?`<div style="background:var(--amber-bg);border-radius:var(--r);padding:10px;margin-bottom:8px;font-size:13px">
+            <div style="font-weight:600;margin-bottom:4px">Pending reading</div>
+            <div>Current: <strong>${pending.current_units}</strong> units · Previous: ${pending.previous_units} · Used: <strong>${pending.units_used}</strong></div>
+            <div>Period: ${pending.billing_period}</div>
+            <div style="margin-top:4px;font-weight:600">Bill: ₹${(pending.units_used*rate).toLocaleString('en-IN')} total · ₹${Math.ceil(pending.units_used*rate/pending.occupants).toLocaleString('en-IN')}/person</div>
+            <div class="txn-acts" style="margin-top:8px">
+              <button class="btn-sm pay" onclick="approveEB(${pending.id})">Approve</button>
+              <button class="btn-sm rej" onclick="rejectEB(${pending.id})">Reject</button>
+            </div>
+          </div>`:pending===null?'':''}
+          <button class="btn-sm" onclick="viewEBHistory(${rm.id},'Room ${rm.room_number}')">View history</button>
+        </div>`;
+      }).join('')}`;
+  }catch(e){el.innerHTML=`<div class="empty">Error: ${e.message}</div>`;}
+}
+
+async function approveEB(id){
+  const r=await fetch(`${API}/api/admin/eb/${id}/approve`,{method:'PATCH',headers:admH()});
+  const data=await r.json();
+  admFlash(`EB approved! Total: ₹${data.total_bill?.toLocaleString('en-IN')} · Per person: ₹${data.per_person?.toLocaleString('en-IN')}`,'s');
+  loadTab4();
+}
+async function rejectEB(id){const note=prompt('Reason:')||'';await fetch(`${API}/api/admin/eb/${id}/reject`,{method:'PATCH',headers:admH(),body:JSON.stringify({note})});admFlash('EB reading rejected.','e');loadTab4();}
+
+async function viewEBHistory(roomId,roomName){
+  const r=await fetch(`${API}/api/admin/eb/${roomId}/history`,{headers:admH()});
+  const history=await r.json();
+  const el=document.getElementById('pg4');
+  el.innerHTML=`
+    <button class="btn-sm" onclick="loadTab4()" style="margin-bottom:1rem">← Back</button>
+    <div class="card">
+      <div class="slabel">${roomName} — EB history</div>
+      ${history.length===0?'<div class="empty">No readings yet.</div>':history.map(h=>{
+        const bc=h.status==='Approved'?'b-paid':h.status==='Rejected'?'b-rejected':'b-review';
+        return `<div class="txn-row"><div class="txn-top">
+          <div><div style="font-weight:600">${h.billing_period}</div>
+          <div class="txn-meta">${h.units_used} units · ${h.occupants} people · ₹${h.rate_per_unit}/unit</div>
+          <div class="txn-meta">By ${h.submitter_name} · ${h.submitted_at.split(' ')[0]}</div></div>
+          <div style="text-align:right"><span class="badge ${bc}">${h.status}</span>
+          ${h.status==='Approved'?`<div class="txn-amt" style="color:var(--green);margin-top:4px">₹${h.per_person.toLocaleString('en-IN')}/person</div>`:''}</div>
+        </div></div>`;
+      }).join('')}
+    </div>`;
+}
+
+// ══ TAB 5 — SETTINGS ═════════════════════════════════════
+async function loadTab5(){
+  const el=document.getElementById('pg5');
+  try{
+    const r=await fetch(`${API}/api/admin/settings`,{headers:admH()});
+    allSettings=await r.json();
+    el.innerHTML=`
+      <div id="settBanner" class="banner"></div>
+      <div class="card">
+        <div class="slabel">Hostel / UPI</div>
+        <div class="settings-row"><label>UPI ID</label><input id="sUpi" value="${allSettings.upi_id||''}"/></div>
+        <div class="settings-row"><label>Receiver name</label><input id="sUpiName" value="${allSettings.upi_name||''}"/></div>
+        <div class="settings-row"><label>PG / hostel name</label><input id="sProp" value="${allSettings.prop_name||''}"/></div>
+        <div class="settings-row"><label>Address</label><input id="sAddr" value="${allSettings.prop_address||''}"/></div>
+        <div class="settings-row"><label>WhatsApp no.</label><input id="sWa" value="${allSettings.wa_number||''}" placeholder="91XXXXXXXXXX"/></div>
+        <div class="settings-row"><label>Admin PIN</label><input type="password" id="sPin" placeholder="Leave blank to keep current"/></div>
+      </div>
+      <div class="card">
+        <div class="slabel">Rent & due date</div>
+        <div class="settings-row"><label>Due day (1–28)</label><input id="sDue" type="number" min="1" max="28" value="${allSettings.due_day||5}"/></div>
+      </div>
+      <div class="card">
+        <div class="slabel">Electricity bill</div>
+        <div class="settings-row"><label>Rate per unit (₹)</label><input id="sEbRate" type="number" min="0" value="${allSettings.eb_rate_per_unit||0}"/></div>
+        <div class="settings-row"><label>Billing cycle</label>
+          <select id="sEbCycle">
+            <option value="monthly" ${allSettings.eb_billing_cycle==='monthly'?'selected':''}>Monthly</option>
+            <option value="bimonthly" ${allSettings.eb_billing_cycle==='bimonthly'?'selected':''}>Bi-monthly</option>
+          </select>
+        </div>
+        <div class="settings-row"><label>Payment mode</label>
+          <select id="sEbMode">
+            <option value="single" ${allSettings.eb_payment_mode==='single'?'selected':''}>One person pays</option>
+            <option value="individual" ${allSettings.eb_payment_mode==='individual'?'selected':''}>Each person pays</option>
+          </select>
+        </div>
+      </div>
+      <div class="card">
+        <div class="slabel">Feature toggles</div>
+        ${toggle('Mess fee','Show mess fee as a payable item','mess_enabled',allSettings.mess_enabled==='1')}
+        ${toggle('Late fee','Add a flat fee after due date','late_fee_enabled',allSettings.late_fee_enabled==='1')}
+        ${toggle('PDF receipts','Students can download receipts','pdf_receipts',allSettings.pdf_receipts==='1')}
+        <div class="settings-row" style="margin-top:10px"><label>Late fee amount (₹)</label><input id="sLateFee" type="number" value="${allSettings.late_fee_amount||0}"/></div>
+      </div>
+      <button class="btn btn-p" onclick="saveSettings()">Save all settings</button>
+    `;
+  }catch(e){el.innerHTML=`<div class="empty">Error: ${e.message}</div>`;}
+}
+
+function toggle(label,sub,key,isOn){
+  return `<div class="toggle-row">
+    <div><span>${label}</span><span class="sub">${sub}</span></div>
+    <div class="toggle ${isOn?'on':''}" id="tgl_${key}" onclick="toggleSetting('${key}',this)"></div>
+  </div>`;
+}
+function toggleSetting(key,el){el.classList.toggle('on');}
+
+async function saveSettings(){
+  const body={
+    upi_id:document.getElementById('sUpi').value,
+    upi_name:document.getElementById('sUpiName').value,
+    prop_name:document.getElementById('sProp').value,
+    prop_address:document.getElementById('sAddr').value,
+    wa_number:document.getElementById('sWa').value,
+    due_day:document.getElementById('sDue').value,
+    eb_rate_per_unit:document.getElementById('sEbRate').value,
+    eb_billing_cycle:document.getElementById('sEbCycle').value,
+    eb_payment_mode:document.getElementById('sEbMode').value,
+    mess_enabled:document.getElementById('tgl_mess_enabled')?.classList.contains('on')?'1':'0',
+    late_fee_enabled:document.getElementById('tgl_late_fee_enabled')?.classList.contains('on')?'1':'0',
+    pdf_receipts:document.getElementById('tgl_pdf_receipts')?.classList.contains('on')?'1':'0',
+    late_fee_amount:document.getElementById('sLateFee').value,
+  };
+  const pin=document.getElementById('sPin').value;
+  if(pin)body.new_pin=pin;
+  try{
+    const r=await fetch(`${API}/api/admin/settings`,{method:'POST',headers:admH(),body:JSON.stringify(body)});
+    const data=await r.json();
+    if(!r.ok)throw new Error(data.error);
+    allSettings=data.settings;
+    const b=document.getElementById('settBanner');b.textContent='Settings saved!';b.className='banner s';
+    setTimeout(()=>b.className='banner',3000);
+  }catch(e){const b=document.getElementById('settBanner');b.textContent=e.message;b.className='banner e';}
+}
+</script>
+</body>
+</html>

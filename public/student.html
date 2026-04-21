@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="theme-color" content="#185FA5"/>
+<link rel="manifest" href="/manifest.json"/>
+<title>HostelPay — Student Portal</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fff;--bg2:#f5f5f3;--bg3:#eeede8;
+  --text:#1a1a18;--text2:#6b6b67;--text3:#9b9b97;
+  --border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.22);
+  --blue:#185FA5;--blue-bg:#E6F1FB;--blue-dark:#0C447C;
+  --green:#3B6D11;--green-bg:#EAF3DE;--green-b:#97C459;
+  --amber:#854F0B;--amber-bg:#FAEEDA;--amber-b:#FAC775;
+  --red:#A32D2D;--red-bg:#FCEBEB;--red-b:#F7C1C1;
+  --r:8px;--rl:12px;--font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --mono:'SF Mono','Fira Code',monospace;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2b;
+  --text:#e8e6de;--text2:#9b9b97;--text3:#6b6b67;
+  --border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.2);
+  --blue:#85B7EB;--blue-bg:#0c2a47;--blue-dark:#B5D4F4;
+  --green:#97C459;--green-bg:#1a2e0a;--green-b:#3B6D11;
+  --amber:#EF9F27;--amber-bg:#2e1f06;--amber-b:#854F0B;
+  --red:#F09595;--red-bg:#2e0f0f;--red-b:#A32D2D;
+}}
+body{font-family:var(--font);background:var(--bg3);color:var(--text);min-height:100vh}
+.app{max-width:480px;margin:0 auto;padding:1.25rem 1rem 5rem}
+.logo{font-size:22px;font-weight:700;color:var(--text)}.logo span{color:var(--blue)}
+.sub{font-size:12px;color:var(--text2);margin-top:2px}
+.card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rl);padding:1.25rem;margin-bottom:1rem}
+.slabel{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--text2);margin-bottom:10px}
+.f{margin-bottom:.85rem}.f:last-child{margin-bottom:0}
+.f label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);margin-bottom:5px}
+.f input,.f select,.f textarea{width:100%;padding:10px 12px;border:0.5px solid var(--border2);border-radius:var(--r);font-size:14px;background:var(--bg);color:var(--text);font-family:var(--font);transition:border-color .15s}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--blue)}
+.f input.ok{border-color:var(--green-b)}.f input.err{border-color:var(--red-b)}
+.ferr{font-size:11px;color:var(--red);margin-top:4px;display:none}.ferr.show{display:block}
+.f textarea{resize:none;height:64px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.phone-wrap{display:flex}.phone-wrap .cc{padding:10px 10px;border:0.5px solid var(--border2);border-right:none;border-radius:var(--r) 0 0 var(--r);font-size:14px;background:var(--bg2);color:var(--text2);white-space:nowrap}
+.phone-wrap input{border-radius:0 var(--r) var(--r) 0;flex:1}
+.amt-wrap{position:relative}.amt-wrap span{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text2);pointer-events:none}
+.amt-wrap input{padding-left:22px}
+.btn{width:100%;padding:12px;border-radius:var(--r);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;border:none}
+.btn-p{background:var(--text);color:var(--bg);margin-bottom:8px}.btn-p:hover{opacity:.85}.btn-p:disabled{opacity:.4;cursor:not-allowed}
+.btn-o{background:transparent;color:var(--text);border:0.5px solid var(--border2)}.btn-o:hover{background:var(--bg2)}
+.btn-sm{padding:6px 14px;font-size:12px;border-radius:var(--r);cursor:pointer;font-family:var(--font);border:0.5px solid var(--border2);background:transparent;color:var(--text2);transition:all .12s;white-space:nowrap}
+.btn-sm:hover{background:var(--bg2)}
+.banner{padding:10px 14px;border-radius:var(--r);font-size:13px;margin-bottom:1rem;display:none}
+.banner.s{background:var(--green-bg);color:var(--green);border:0.5px solid var(--green-b);display:block}
+.banner.w{background:var(--amber-bg);color:var(--amber);border:0.5px solid var(--amber-b);display:block}
+.banner.e{background:var(--red-bg);color:var(--red);border:0.5px solid var(--red-b);display:block}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;font-weight:500}
+.b-paid{background:var(--green-bg);color:var(--green)}.b-review{background:var(--blue-bg);color:var(--blue-dark)}
+.b-rejected{background:var(--red-bg);color:var(--red)}.b-pending{background:var(--amber-bg);color:var(--amber)}
+.tabs{display:flex;gap:4px;background:var(--bg2);border-radius:var(--rl);padding:4px;margin-bottom:1.25rem;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(480px,100%);z-index:100;box-shadow:0 -1px 0 var(--border)}
+.tab{flex:1;padding:8px 4px;text-align:center;font-size:12px;cursor:pointer;border-radius:var(--r);border:none;background:transparent;color:var(--text2);font-family:var(--font);font-weight:400;transition:all .15s}
+.tab.active{background:var(--bg);color:var(--text);font-weight:600;border:0.5px solid var(--border)}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:1rem}
+.stat{background:var(--bg2);border-radius:var(--r);padding:12px;text-align:center}
+.stat-v{font-size:18px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}
+.stat-l{font-size:11px;color:var(--text2);margin-top:2px}
+.txn-row{padding:12px 0;border-bottom:0.5px solid var(--border)}
+.txn-row:last-child{border-bottom:none}
+.txn-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.txn-name{font-size:14px;font-weight:600;color:var(--text)}
+.txn-meta{font-size:12px;color:var(--text2);margin-top:3px;line-height:1.5}
+.txn-amt{font-size:15px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.copy-row{display:flex;align-items:center;gap:10px;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:10px}
+.copy-val{flex:1;font-size:14px;font-weight:600;color:var(--text);word-break:break-all}
+.copy-btn{flex-shrink:0;padding:7px 14px;border:0.5px solid var(--border2);border-radius:var(--r);background:var(--bg);font-size:12px;font-weight:600;cursor:pointer;color:var(--text);font-family:var(--font);white-space:nowrap;transition:all .15s}
+.note-display{font-size:13px;color:var(--text);font-family:var(--mono);line-height:1.6;word-break:break-all;margin-bottom:10px}
+.upload-zone{border:1px dashed var(--border2);border-radius:var(--r);padding:1.5rem;text-align:center;cursor:pointer;margin-bottom:1rem;position:relative;transition:background .15s}
+.upload-zone:hover{background:var(--bg2)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-zone p{font-size:13px;color:var(--text2);pointer-events:none}
+.thumb-wrap{position:relative;margin-bottom:1rem}.thumb{width:100%;max-height:180px;object-fit:cover;border-radius:var(--r);border:0.5px solid var(--border)}
+.thumb-del{position:absolute;top:6px;right:6px;background:var(--bg);border:0.5px solid var(--border2);border-radius:999px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--text2)}
+.step-bar{display:flex;margin-bottom:1.5rem;position:relative}
+.step-bar::before{content:'';position:absolute;top:14px;left:14px;right:14px;height:1px;background:var(--border);z-index:0}
+.step{flex:1;text-align:center;position:relative;z-index:1}
+.step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 4px;font-size:12px;font-weight:600;background:var(--bg2);border:0.5px solid var(--border2);color:var(--text2);transition:all .2s}
+.step-dot.done{background:var(--green-bg);border-color:var(--green-b);color:var(--green)}
+.step-dot.active{background:var(--text);border-color:var(--text);color:var(--bg)}
+.step-label{font-size:10px;color:var(--text2)}
+.due-banner{border-radius:var(--r);padding:10px 14px;font-size:13px;margin-bottom:1rem;font-weight:500}
+.due-ok{background:var(--green-bg);color:var(--green);border:0.5px solid var(--green-b)}
+.due-soon{background:var(--amber-bg);color:var(--amber);border:0.5px solid var(--amber-b)}
+.due-over{background:var(--red-bg);color:var(--red);border:0.5px solid var(--red-b)}
+.inforow{display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--border);font-size:13px}
+.inforow:last-child{border-bottom:none}
+.inforow span:first-child{color:var(--text2)}
+.inforow span:last-child{font-weight:500;color:var(--text)}
+.loader{display:inline-block;width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--text);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--text2);font-size:14px}
+.utr-wrap{display:flex;align-items:center;gap:8px}
+.utr-wrap input{flex:1;padding:9px 12px;border:0.5px solid var(--border2);border-radius:var(--r);font-size:13px;background:var(--bg);color:var(--text);font-family:var(--mono)}
+.month-picker{display:flex;gap:8px}
+.month-picker select{flex:1;padding:10px 10px;border:0.5px solid var(--border2);border-radius:var(--r);font-size:14px;background:var(--bg);color:var(--text);font-family:var(--font)}
+.eb-reading-box{background:var(--bg2);border-radius:var(--r);padding:12px;margin-bottom:10px;font-size:13px;line-height:1.8}
+.eb-history-row{padding:10px 0;border-bottom:0.5px solid var(--border);font-size:13px}
+.eb-history-row:last-child{border-bottom:none}
+</style>
+</head>
+<body>
+<div class="app" id="appRoot">
+
+<!-- ===== LOGIN STATE ===== -->
+<div id="loginView">
+  <div style="text-align:center;padding:3rem 0 2rem">
+    <div class="logo" style="font-size:28px">Hostel<span>Pay</span></div>
+    <div class="sub" style="margin-top:4px" id="propNameLogin">Student Portal</div>
+  </div>
+  <div class="card">
+    <div class="slabel">Sign in to your account</div>
+    <div id="loginBanner" class="banner"></div>
+    <div class="f">
+      <label>Phone number</label>
+      <div class="phone-wrap">
+        <span class="cc">+91</span>
+        <input id="loginPhone" type="tel" placeholder="9876543210" maxlength="10"
+          oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+          onkeydown="if(event.key==='Enter')doLogin()"/>
+      </div>
+    </div>
+    <div class="f">
+      <label>Password</label>
+      <input id="loginPass" type="password" placeholder="Enter your password"
+        onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <button class="btn btn-p" id="loginBtn" onclick="doLogin()">Sign in</button>
+    <div style="font-size:12px;color:var(--text2);text-align:center;margin-top:8px">
+      No account? Contact your hostel admin to get added.
+    </div>
+  </div>
+</div>
+
+<!-- ===== PORTAL STATE ===== -->
+<div id="portalView" style="display:none">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem">
+    <div>
+      <div class="logo">Hostel<span>Pay</span></div>
+      <div class="sub" id="studentGreeting">Welcome</div>
+    </div>
+    <button onclick="doLogout()" style="font-size:12px;padding:5px 12px;border:0.5px solid var(--border2);border-radius:999px;background:transparent;cursor:pointer;color:var(--text2);font-family:var(--font)">Sign out</button>
+  </div>
+
+  <!-- Due date banner -->
+  <div id="dueBanner" style="display:none"></div>
+
+  <!-- Tab pages -->
+  <div id="pg0"><!-- PAY NOW --></div>
+  <div id="pg1" style="display:none"><!-- MY PAYMENTS --></div>
+  <div id="pg2" style="display:none"><!-- EB --></div>
+  <div id="pg3" style="display:none"><!-- PROFILE --></div>
+
+  <!-- Bottom tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="showTab(0,this)">Pay</button>
+    <button class="tab" onclick="showTab(1,this)">Payments</button>
+    <button class="tab" onclick="showTab(2,this)">EB</button>
+    <button class="tab" onclick="showTab(3,this)">Profile</button>
+  </div>
+</div>
+
+</div><!-- end appRoot -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const API = '';
+let studentToken = localStorage.getItem('hp_student_token') || '';
+let me = null; // current student profile
+let cfg = {}; // hostel config
+let ssFile = null;
+let currentStep = 1;
+let utrValue = '';
+
+// ── PWA service worker ─────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
+}
+
+// ── Boot ──────────────────────────────────────────────────
+async function boot() {
+  // Load prop name for login screen
+  try {
+    const r = await fetch(`${API}/api/payments/config`);
+    cfg = await r.json();
+    document.getElementById('propNameLogin').textContent = cfg.prop_name || 'Student Portal';
+  } catch {}
+
+  if (studentToken) {
+    const ok = await loadMe();
+    if (ok) showPortal();
+  }
+}
+
+async function loadMe() {
+  try {
+    const r = await fetch(`${API}/api/students/me`, { headers: { Authorization: 'Bearer ' + studentToken } });
+    if (!r.ok) { studentToken = ''; localStorage.removeItem('hp_student_token'); return false; }
+    const data = await r.json();
+    me = data.student;
+    cfg = { ...cfg, ...data.config };
+    return true;
+  } catch { return false; }
+}
+
+// ── Login ─────────────────────────────────────────────────
+async function doLogin() {
+  const phone = document.getElementById('loginPhone').value.trim();
+  const password = document.getElementById('loginPass').value;
+  if (!phone || !password) { loginFlash('Please enter phone and password.', 'e'); return; }
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Signing in…';
+  try {
+    const r = await fetch(`${API}/api/students/login`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, password })
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error);
+    studentToken = data.token;
+    localStorage.setItem('hp_student_token', studentToken);
+    me = data.student;
+    showPortal();
+  } catch(e) {
+    loginFlash(e.message || 'Login failed', 'e');
+    btn.disabled = false; btn.textContent = 'Sign in';
+  }
+}
+
+function loginFlash(msg, t) {
+  const b = document.getElementById('loginBanner');
+  b.textContent = msg; b.className = 'banner ' + t;
+}
+
+function doLogout() {
+  studentToken = ''; localStorage.removeItem('hp_student_token');
+  me = null; ssFile = null;
+  document.getElementById('portalView').style.display = 'none';
+  document.getElementById('loginView').style.display = 'block';
+  document.getElementById('loginPhone').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginBanner').className = 'banner';
+}
+
+// ── Portal ────────────────────────────────────────────────
+function showPortal() {
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('portalView').style.display = 'block';
+  document.getElementById('studentGreeting').textContent = `Welcome, ${me.name.split(' ')[0]}`;
+  renderDueBanner();
+  renderPayNow();
+}
+
+function authH() { return { Authorization: 'Bearer ' + studentToken, 'Content-Type': 'application/json' }; }
+
+function showTab(i, el) {
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  ['pg0','pg1','pg2','pg3'].forEach((id,j) => document.getElementById(id).style.display = j===i?'block':'none');
+  if (i===0) renderPayNow();
+  if (i===1) renderMyPayments();
+  if (i===2) renderEB();
+  if (i===3) renderProfile();
+}
+
+// ── Due date banner ───────────────────────────────────────
+function renderDueBanner() {
+  const dueDay = parseInt(cfg.due_day) || 5;
+  const now = new Date();
+  const today = now.getDate();
+  const daysLeft = dueDay - today;
+  const b = document.getElementById('dueBanner');
+  b.style.display = 'block';
+  if (daysLeft > 3) {
+    b.className = 'due-banner due-ok';
+    b.textContent = `Rent due on the ${dueDay}${th(dueDay)} — ${daysLeft} days away`;
+  } else if (daysLeft >= 0) {
+    b.className = 'due-banner due-soon';
+    b.textContent = `Rent due in ${daysLeft === 0 ? 'today!' : daysLeft + ' day' + (daysLeft>1?'s':'')}`;
+  } else {
+    b.className = 'due-banner due-over';
+    b.textContent = `Rent is overdue by ${Math.abs(daysLeft)} day${Math.abs(daysLeft)>1?'s':''}. Please pay immediately.`;
+  }
+}
+function th(n) { return n===1?'st':n===2?'nd':n===3?'rd':'th'; }
+
+// ══════════════════════════════════════════════════════════
+// TAB 1 — PAY NOW
+// ══════════════════════════════════════════════════════════
+function renderPayNow() {
+  const room = me.room_number || '—';
+  const rent = me.monthly_rent ? `₹${me.monthly_rent.toLocaleString('en-IN')}` : 'see admin';
+  document.getElementById('pg0').innerHTML = `
+    <div id="stuBanner" class="banner"></div>
+    <div class="step-bar">
+      <div class="step"><div class="step-dot active" id="sd0">1</div><div class="step-label">Details</div></div>
+      <div class="step"><div class="step-dot" id="sd1">2</div><div class="step-label">Pay</div></div>
+      <div class="step"><div class="step-dot" id="sd2">3</div><div class="step-label">Proof</div></div>
+    </div>
+
+    <div id="step1" class="card">
+      <div class="slabel">Payment details</div>
+      <div style="background:var(--bg2);border-radius:var(--r);padding:10px 14px;margin-bottom:1rem;font-size:13px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span style="color:var(--text2)">Student</span><span style="font-weight:600">${me.name}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span style="color:var(--text2)">Roll</span><span style="font-family:var(--mono)">${me.roll}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="color:var(--text2)">Room</span><span>${room} · Monthly rent: ${rent}</span>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="f">
+          <label>Fee type</label>
+          <select id="sFeeType" onchange="updatePreview()">
+            <option>Hostel Rent</option>
+            <option>Electricity Bill</option>
+            <option>Maintenance</option>
+            ${cfg.mess_enabled==='1'?'<option>Mess Fee</option>':''}
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="f">
+          <label>Amount (₹)</label>
+          <div class="amt-wrap">
+            <span>₹</span>
+            <input id="sAmt" placeholder="${me.monthly_rent||''}" type="text" inputmode="numeric" maxlength="8"
+              oninput="this.value=this.value.replace(/[^0-9]/g,'');validateAmt()"
+              onblur="validateAmt()"/>
+          </div>
+          <div class="ferr" id="err-sAmt">Minimum ₹1</div>
+        </div>
+      </div>
+      <div class="f">
+        <label>Month &amp; year</label>
+        <div class="month-picker">
+          <select id="sMonthM" onchange="validateMonth();updatePreview()">
+            <option value="">Month</option>
+            ${['January','February','March','April','May','June','July','August','September','October','November','December'].map(m=>`<option>${m}</option>`).join('')}
+          </select>
+          <select id="sMonthY" onchange="validateMonth();updatePreview()">
+            <option value="">Year</option>
+          </select>
+        </div>
+        <div class="ferr" id="err-month">Select both month and year</div>
+      </div>
+      <div class="f">
+        <label>Notes <span style="font-size:11px;opacity:.7">optional</span></label>
+        <textarea id="sNotes" placeholder="Any additional info…" maxlength="200" oninput="updatePreview()"></textarea>
+      </div>
+      <div class="f">
+        <label>UTR / Transaction ID <span style="font-size:11px;opacity:.7">optional — fill after paying</span></label>
+        <input id="sUTR" placeholder="e.g. T2502031234567" oninput="utrValue=this.value.trim()"/>
+      </div>
+      <button class="btn btn-p" onclick="goPayStep(2)">Continue</button>
+      <button class="btn btn-o" onclick="showPartialRequest()" style="font-size:13px">Request partial payment</button>
+    </div>
+
+    <div id="step2" class="card" style="display:none">
+      <div class="slabel">Payment details — pay using UPI</div>
+      <div style="background:var(--bg2);border-radius:var(--r);padding:12px;margin-bottom:1rem">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:12px;color:var(--text2)">Fee</span><span id="s2fee" style="font-size:13px;font-weight:600"></span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:12px;color:var(--text2)">Period</span><span id="s2period" style="font-size:13px"></span></div>
+        <div style="display:flex;justify-content:space-between"><span style="font-size:12px;color:var(--text2)">Amount</span><span id="s2amt" style="font-size:22px;font-weight:700;font-variant-numeric:tabular-nums"></span></div>
+      </div>
+      <div style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);margin-bottom:6px">UPI ID — <span style="font-weight:400;text-transform:none">tap Copy then open your UPI app</span></div>
+      <div class="copy-row" style="margin-bottom:10px">
+        <span class="copy-val" id="cpUpiId">${cfg.upi_id||'hostel@upi'}</span>
+        <button class="copy-btn" id="cpUpiBtn" onclick="copyIt(cfg.upi_id||'','cpUpiBtn')">Copy</button>
+      </div>
+      <div style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);margin-bottom:6px">Amount</div>
+      <div class="copy-row" style="margin-bottom:10px">
+        <span class="copy-val" id="cpAmtVal"></span>
+        <button class="copy-btn" id="cpAmtBtn" onclick="copyIt(document.getElementById('sAmt').value,'cpAmtBtn')">Copy</button>
+      </div>
+      <div style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);margin-bottom:6px">Payment note <span style="font-weight:400;text-transform:none;letter-spacing:0">(paste in remarks)</span></div>
+      <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:12px;margin-bottom:12px">
+        <div class="note-display" id="cpNote"></div>
+        <button class="copy-btn" id="cpNoteBtn" onclick="copyIt(buildFullNote(),'cpNoteBtn')" style="width:100%">Copy note</button>
+      </div>
+      <div style="background:var(--blue-bg);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--blue-dark);margin-bottom:12px">
+        1. Copy UPI ID → Open GPay/PhonePe/Paytm → Send Money<br>
+        2. Paste UPI ID → Enter amount → Paste note in remarks<br>
+        3. Pay → come back here → upload screenshot
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-o" onclick="goPayStep(1)" style="width:auto;padding:12px 20px">Back</button>
+        <button class="btn btn-p" onclick="goPayStep(3)">Paid — upload screenshot</button>
+      </div>
+    </div>
+
+    <div id="step3" class="card" style="display:none">
+      <div class="slabel">Upload payment screenshot</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:1rem">Screenshot of the UPI success screen.</p>
+      <div id="uploadZone" class="upload-zone">
+        <input type="file" accept="image/*" onchange="handleUpload(this)" id="ssInput"/>
+        <svg style="width:28px;height:28px;margin:0 auto 8px;opacity:.4;display:block;pointer-events:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+        <p>Tap to select screenshot</p>
+        <p style="font-size:11px;margin-top:4px">JPG or PNG · max 5MB</p>
+      </div>
+      <div id="thumbWrap" style="display:none" class="thumb-wrap">
+        <img id="ssThumb" class="thumb" src="" alt=""/>
+        <div class="thumb-del" onclick="clearUpload()">✕</div>
+      </div>
+      <div id="uploadErr" style="font-size:12px;color:var(--red);margin-bottom:8px;display:none"></div>
+      <button class="btn btn-p" id="submitBtn" onclick="submitPayment()">Submit payment</button>
+      <div style="margin-top:8px"><button class="btn btn-o" onclick="goPayStep(2)" style="width:auto;padding:12px 20px">Back</button></div>
+    </div>
+
+    <div id="step4" class="card" style="display:none;text-align:center;padding:2rem">
+      <div style="width:52px;height:52px;background:var(--green-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:24px;color:var(--green)">✓</div>
+      <div style="font-size:17px;font-weight:700;margin-bottom:6px">Submitted!</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:1.25rem" id="confirmMsg"></div>
+      <div style="background:var(--green-bg);border-radius:var(--r);padding:10px 14px;font-size:13px;color:var(--green);margin-bottom:1.25rem">Admin notified via WhatsApp. Your payment is under review.</div>
+      <button class="btn btn-o" onclick="resetPayFlow()">Make another payment</button>
+    </div>
+  `;
+
+  // Populate year dropdown
+  const sel = document.getElementById('sMonthY');
+  const now = new Date().getFullYear();
+  for (let y=now-1;y<=now+1;y++) {
+    const o=document.createElement('option'); o.value=o.textContent=y;
+    if(y===now)o.selected=true; sel.appendChild(o);
+  }
+  // Pre-fill amount with monthly rent
+  if (me.monthly_rent) document.getElementById('sAmt').value = me.monthly_rent;
+  updatePreview();
+}
+
+function getMonthStr() {
+  const m=document.getElementById('sMonthM')?.value;
+  const y=document.getElementById('sMonthY')?.value;
+  return m&&y?`${m} ${y}`:'';
+}
+
+function buildFullNote() {
+  const fee=document.getElementById('sFeeType')?.value||'Hostel Rent';
+  const month=getMonthStr();
+  const notes=document.getElementById('sNotes')?.value.trim()||'';
+  let n=fee;
+  if(month) n+=` - ${month}`;
+  n+=`, Room ${me.room_number||'?'} [${me.roll}] (${me.name})`;
+  if(notes) n+=`. ${notes}`;
+  return n;
+}
+
+function updatePreview() {
+  const note = buildFullNote();
+  const el = document.getElementById('cpNote');
+  if(el) el.textContent = note;
+}
+
+function validateAmt() {
+  const v=document.getElementById('sAmt')?.value;
+  const ok=v&&parseInt(v)>=1;
+  const el=document.getElementById('sAmt');
+  if(el){el.className=el.className.replace(/\b(ok|err)\b/g,'').trim();if(v)el.classList.add(ok?'ok':'err');}
+  const err=document.getElementById('err-sAmt');
+  if(err)err.className='ferr'+(!ok&&v?' show':'');
+  return !!ok;
+}
+
+function validateMonth() {
+  const m=document.getElementById('sMonthM')?.value;
+  const y=document.getElementById('sMonthY')?.value;
+  const ok=m&&y;
+  const err=document.getElementById('err-month');
+  if(err)err.className='ferr'+(!ok&&(m||y)?' show':'');
+  return !!ok;
+}
+
+async function goPayStep(n) {
+  if(n===2){
+    if(!validateAmt()||!validateMonth()){stuFlash('Please fill in all required fields.','w');return;}
+    // Duplicate check
+    const fee=document.getElementById('sFeeType').value;
+    const month=getMonthStr();
+    try{
+      const r=await fetch(`${API}/api/students/transactions`,{headers:authH()});
+      const data=await r.json();
+      const dup=data.transactions.find(t=>t.month===month&&t.fee_type===fee&&['Paid','Under review','Pending'].includes(t.status));
+      if(dup){stuFlash(`You already have a ${dup.status.toLowerCase()} submission for ${fee} in ${month}.`,'e');return;}
+    }catch{}
+    // Update summary
+    document.getElementById('s2fee').textContent=document.getElementById('sFeeType').value;
+    document.getElementById('s2period').textContent=getMonthStr();
+    const amt=parseInt(document.getElementById('sAmt').value)||0;
+    document.getElementById('s2amt').textContent='₹'+amt.toLocaleString('en-IN');
+    document.getElementById('cpAmtVal').textContent='₹'+amt.toLocaleString('en-IN');
+    updatePreview();
+  }
+  currentStep=n;
+  [1,2,3,4].forEach(i=>{const el=document.getElementById('step'+i);if(el)el.style.display=i===n?'block':'none';});
+  [0,1,2].forEach(i=>{
+    const dot=document.getElementById('sd'+i);
+    if(!dot)return;
+    const step=i+1;
+    dot.className='step-dot'+(step<n?' done':step===n?' active':'');
+    dot.textContent=step<n?'✓':step;
+  });
+}
+
+function stuFlash(msg,t){const b=document.getElementById('stuBanner');if(!b)return;b.textContent=msg;b.className='banner '+t;clearTimeout(b._t);b._t=setTimeout(()=>b.className='banner',6000);}
+
+function handleUpload(input){
+  const file=input.files[0];if(!file)return;
+  if(file.size>5*1024*1024){showUploadErr('Max 5MB');return;}
+  if(!file.type.startsWith('image/')){showUploadErr('Images only');return;}
+  ssFile=file;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    document.getElementById('ssThumb').src=e.target.result;
+    document.getElementById('thumbWrap').style.display='block';
+    document.getElementById('uploadZone').style.display='none';
+    hideUploadErr();
+  };
+  reader.readAsDataURL(file);
+}
+function clearUpload(){ssFile=null;document.getElementById('ssInput').value='';document.getElementById('thumbWrap').style.display='none';document.getElementById('uploadZone').style.display='block';}
+function showUploadErr(m){const e=document.getElementById('uploadErr');e.textContent=m;e.style.display='block';}
+function hideUploadErr(){const e=document.getElementById('uploadErr');if(e)e.style.display='none';}
+
+async function submitPayment(){
+  if(!ssFile){showUploadErr('Please upload your screenshot first.');return;}
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true;btn.innerHTML='<span class="loader"></span> Submitting…';
+
+  // WhatsApp BEFORE async
+  const waNum=(cfg.wa_number||'').replace(/\D/g,'');
+  if(waNum){
+    const amt=parseInt(document.getElementById('sAmt').value)||0;
+    const fee=document.getElementById('sFeeType').value;
+    const month=getMonthStr();
+    const date=new Date().toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'});
+    const msg=`*HostelPay — New Payment* 🏠💰\n━━━━━━━━━━━━━━━━\n*Student:* ${me.name} [${me.roll}]\n*Room:* ${me.room_number||'?'}\n*Phone:* +91${me.phone}\n━━━━━━━━━━━━━━━━\n*Fee type:* ${fee}\n*Month:* ${month}\n*Amount:* ₹${amt.toLocaleString('en-IN')}\n*UTR:* ${utrValue||'Not provided'}\n*Submitted:* ${date}\n━━━━━━━━━━━━━━━━\n*Note:* ${buildFullNote()}\n━━━━━━━━━━━━━━━━\nPlease verify and mark in admin console.`;
+    const a=document.createElement('a');a.href=`https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`;a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();document.body.removeChild(a);
+  }
+
+  try{
+    const fd=new FormData();
+    fd.append('roll',me.roll);fd.append('name',me.name);fd.append('room',me.room_number||'');
+    fd.append('phone',me.phone);fd.append('fee_type',document.getElementById('sFeeType').value);
+    fd.append('month',getMonthStr());fd.append('amount',document.getElementById('sAmt').value);
+    fd.append('notes',buildFullNote());fd.append('utr',utrValue||'');
+    fd.append('screenshot',ssFile,ssFile.name);
+    const r=await fetch(`${API}/api/payments`,{method:'POST',headers:{Authorization:'Bearer '+studentToken},body:fd});
+    const data=await r.json();
+    if(!r.ok)throw new Error(data.error||'Submission failed');
+    const amt=parseInt(document.getElementById('sAmt').value)||0;
+    document.getElementById('confirmMsg').textContent=`₹${amt.toLocaleString('en-IN')} for ${document.getElementById('sFeeType').value} · ${getMonthStr()} — awaiting admin verification`;
+    goPayStep(4);
+  }catch(err){
+    showUploadErr(err.message);
+    btn.disabled=false;btn.textContent='Submit payment';
+  }
+}
+
+function resetPayFlow(){
+  ssFile=null;utrValue='';
+  renderPayNow();
+}
+
+function copyIt(text,btnId){
+  const btn=document.getElementById(btnId);
+  const orig=btn.textContent;
+  function markDone(){btn.textContent='Copied!';btn.style.background='var(--green-bg)';btn.style.color='var(--green)';btn.style.borderColor='var(--green-b)';setTimeout(()=>{btn.textContent=orig;btn.style.background='';btn.style.color='';btn.style.borderColor='';},2000);}
+  if(navigator.clipboard?.writeText){navigator.clipboard.writeText(text).then(markDone).catch(()=>fallbackCopy(text,markDone));}
+  else fallbackCopy(text,markDone);
+}
+function fallbackCopy(text,cb){
+  const ta=document.createElement('textarea');ta.value=text;ta.setAttribute('readonly','');ta.style.cssText='position:fixed;top:0;left:0;opacity:0;font-size:16px';
+  document.body.appendChild(ta);ta.focus();ta.select();const range=document.createRange();range.selectNodeContents(ta);const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);ta.setSelectionRange(0,99999);
+  try{document.execCommand('copy');cb&&cb();}catch{alert('Long-press the text and copy manually.');}
+  document.body.removeChild(ta);
+}
+
+function showPartialRequest(){
+  const month=getMonthStr();
+  if(!month){stuFlash('Please select a month first.','w');return;}
+  const fee=document.getElementById('sFeeType').value;
+
+  // Show inline form inside a banner instead of prompt
+  const existing=document.getElementById('partialFormBox');
+  if(existing){existing.remove();return;}
+
+  const box=document.createElement('div');
+  box.id='partialFormBox';
+  box.style.cssText='background:var(--amber-bg);border:0.5px solid var(--amber-b);border-radius:var(--r);padding:14px;margin-bottom:1rem';
+  box.innerHTML=`
+    <div style="font-size:13px;font-weight:600;color:var(--amber);margin-bottom:10px">Partial payment request — ${fee} · ${month}</div>
+    <div class="f" style="margin-bottom:8px">
+      <label style="font-size:12px;color:var(--amber)">Amount you can pay (₹)</label>
+      <div style="position:relative"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text2)">₹</span>
+      <input id="partialAmt" type="text" inputmode="numeric" placeholder="e.g. 3000" style="padding:9px 12px 9px 22px;width:100%;border:0.5px solid var(--amber-b);border-radius:var(--r);font-size:14px;background:var(--bg);color:var(--text);font-family:var(--font)" oninput="this.value=this.value.replace(/[^0-9]/g,'')"/></div>
+    </div>
+    <div class="f" style="margin-bottom:10px">
+      <label style="font-size:12px;color:var(--amber)">Reason (required)</label>
+      <textarea id="partialReason" placeholder="Explain why you need to pay partially…" style="width:100%;padding:9px 12px;border:0.5px solid var(--amber-b);border-radius:var(--r);font-size:13px;background:var(--bg);color:var(--text);font-family:var(--font);resize:none;height:72px"></textarea>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="submitPartialRequest('${fee}','${month}')" style="flex:1;padding:10px;background:var(--amber);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)" id="partialSubmitBtn">Send request</button>
+      <button onclick="document.getElementById('partialFormBox').remove()" style="padding:10px 16px;background:transparent;color:var(--amber);border:0.5px solid var(--amber-b);border-radius:var(--r);font-size:13px;cursor:pointer;font-family:var(--font)">Cancel</button>
+    </div>
+    <div id="partialBanner" style="margin-top:8px;display:none"></div>
+  `;
+
+  // Insert after the partial button
+  const btn=document.querySelector('button[onclick="showPartialRequest()"]');
+  if(btn) btn.insertAdjacentElement('afterend',box);
+  document.getElementById('partialAmt').focus();
+}
+
+async function submitPartialRequest(fee,month){
+  const amount=document.getElementById('partialAmt').value;
+  const reason=document.getElementById('partialReason').value.trim();
+  const banner=document.getElementById('partialBanner');
+  const btn=document.getElementById('partialSubmitBtn');
+
+  if(!amount||parseInt(amount)<1){
+    banner.textContent='Please enter a valid amount.';
+    banner.style.cssText='display:block;padding:8px 12px;background:var(--red-bg);color:var(--red);border-radius:var(--r);font-size:12px';
+    return;
+  }
+  if(!reason){
+    banner.textContent='Please enter a reason.';
+    banner.style.cssText='display:block;padding:8px 12px;background:var(--red-bg);color:var(--red);border-radius:var(--r);font-size:12px';
+    return;
+  }
+
+  btn.disabled=true; btn.textContent='Sending…';
+
+  try{
+    const r=await fetch(`${API}/api/students/partial-request`,{
+      method:'POST',headers:authH(),
+      body:JSON.stringify({month,fee_type:fee,amount:parseFloat(amount),reason})
+    });
+    const data=await r.json();
+    if(!r.ok)throw new Error(data.error);
+
+    // Replace the form with a success notice
+    const box=document.getElementById('partialFormBox');
+    box.style.background='var(--green-bg)';
+    box.style.borderColor='var(--green-b)';
+    box.innerHTML=`
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--green-bg);border:0.5px solid var(--green-b);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--green);flex-shrink:0">✓</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--green)">Request sent successfully!</div>
+          <div style="font-size:12px;color:var(--green);margin-top:2px">Partial payment of ₹${parseInt(amount).toLocaleString('en-IN')} for ${fee} · ${month} sent to admin for approval. You'll be notified once reviewed.</div>
+        </div>
+      </div>
+      <button onclick="this.closest('#partialFormBox').remove()" style="margin-top:10px;width:100%;padding:8px;background:transparent;color:var(--green);border:0.5px solid var(--green-b);border-radius:var(--r);font-size:12px;cursor:pointer;font-family:var(--font)">Dismiss</button>
+    `;
+  }catch(e){
+    banner.textContent=e.message;
+    banner.style.cssText='display:block;padding:8px 12px;background:var(--red-bg);color:var(--red);border-radius:var(--r);font-size:12px';
+    btn.disabled=false; btn.textContent='Send request';
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// TAB 2 — MY PAYMENTS
+// ══════════════════════════════════════════════════════════
+async function renderMyPayments(){
+  const el=document.getElementById('pg1');
+  el.innerHTML='<div class="empty"><span class="loader"></span> Loading…</div>';
+  try{
+    const r=await fetch(`${API}/api/students/transactions`,{headers:authH()});
+    const data=await r.json();
+    const txns=data.transactions;
+    const advance_remaining=me.advance_paid-me.advance_used;
+    const refundable=Math.max(0,advance_remaining-me.base_hold);
+    el.innerHTML=`
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-v">₹${data.total_paid.toLocaleString('en-IN')}</div><div class="stat-l">Total paid</div></div>
+        <div class="stat"><div class="stat-v">₹${advance_remaining.toLocaleString('en-IN')}</div><div class="stat-l">Advance left</div></div>
+        <div class="stat"><div class="stat-v">${data.pending}</div><div class="stat-l">Pending</div></div>
+      </div>
+      <div class="card" style="margin-bottom:.5rem">
+        <div class="slabel">Advance details</div>
+        <div class="inforow"><span>Advance paid</span><span>₹${me.advance_paid.toLocaleString('en-IN')}</span></div>
+        <div class="inforow"><span>Used / deducted</span><span>₹${me.advance_used.toLocaleString('en-IN')}</span></div>
+        <div class="inforow"><span>Remaining</span><span>₹${advance_remaining.toLocaleString('en-IN')}</span></div>
+        <div class="inforow"><span>Held by hostel</span><span>₹${me.base_hold.toLocaleString('en-IN')}</span></div>
+        <div class="inforow"><span style="font-weight:600">Refundable on exit</span><span style="color:var(--green);font-weight:700">₹${refundable.toLocaleString('en-IN')}</span></div>
+      </div>
+      <div class="card">
+        <div class="slabel">Payment history</div>
+        ${txns.length===0?'<div class="empty">No payments yet.</div>':txns.map(t=>{
+          const bc=t.status==='Paid'?'b-paid':t.status==='Rejected'?'b-rejected':t.status==='Under review'?'b-review':'b-pending';
+          const amtColor=t.status==='Paid'?'var(--green)':t.status==='Rejected'?'var(--red)':'var(--text)';
+          return `<div class="txn-row">
+            <div class="txn-top">
+              <div>
+                <div class="txn-name">${t.fee_type} <span class="badge ${bc}">${t.status}</span></div>
+                <div class="txn-meta">${t.month} · Rm ${t.room} · ${t.created_at.split(' ')[0]}</div>
+                ${t.utr?`<div class="txn-meta" style="font-family:var(--mono)">UTR: ${t.utr}</div>`:''}
+                ${t.paid_on?`<div class="txn-meta" style="color:var(--green)">Confirmed: ${t.paid_on}</div>`:''}
+                ${t.rej_reason?`<div class="txn-meta" style="color:var(--red)">Reason: ${t.rej_reason}</div>`:''}
+              </div>
+              <div style="text-align:right">
+                <div class="txn-amt" style="color:${amtColor}">₹${t.amount.toLocaleString('en-IN')}</div>
+                ${t.status==='Paid'?`<button onclick="downloadReceipt(${JSON.stringify(t).replace(/"/g,'&quot;')})" style="margin-top:6px;padding:4px 10px;font-size:11px;border:0.5px solid var(--green-b);border-radius:var(--r);background:var(--green-bg);color:var(--green);cursor:pointer;font-family:var(--font)">Download receipt</button>`:''}
+              </div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`;
+  }catch{el.innerHTML='<div class="empty">Could not load payments.</div>';}
+}
+
+// ══════════════════════════════════════════════════════════
+// TAB 3 — EB
+// ══════════════════════════════════════════════════════════
+async function renderEB(){
+  const el=document.getElementById('pg2');
+  el.innerHTML='<div class="empty"><span class="loader"></span> Loading…</div>';
+  try{
+    const r=await fetch(`${API}/api/students/eb`,{headers:authH()});
+    const data=await r.json();
+    const pending=data.pending;
+    const latest=data.latest;
+    const readings=data.readings;
+    el.innerHTML=`
+      <div class="card" style="margin-bottom:1rem">
+        <div class="slabel">Submit meter reading</div>
+        ${pending?`<div class="banner w" style="display:block;margin-bottom:1rem">A reading of <strong>${pending.current_units} units</strong> is pending admin approval. Wait for it to be resolved before submitting again.</div>`:''}
+        ${latest?`<div style="background:var(--bg2);border-radius:var(--r);padding:10px 14px;margin-bottom:1rem;font-size:13px">
+          <div style="color:var(--text2);margin-bottom:4px">Last approved reading</div>
+          <div><strong>${latest.current_units} units</strong> · ${latest.billing_period}</div>
+        </div>`:''}
+        ${!pending?`
+        <div class="f"><label>Current meter reading (units)</label>
+          <input id="ebUnits" type="number" min="0" placeholder="e.g. 1380"/></div>
+        <div class="f"><label>Billing period</label>
+          <input id="ebPeriod" placeholder="e.g. February 2025"/></div>
+        ${latest?`<div style="font-size:12px;color:var(--text2);margin-bottom:1rem">Units used will be: current - ${latest.current_units} (previous)</div>`:''}
+        <button class="btn btn-p" onclick="submitEBReading()">Submit reading</button>
+        `:''}
+        <div style="font-size:12px;color:var(--text2);margin-top:8px">Only one person per room needs to submit. Bill is split equally among all roommates.</div>
+      </div>
+      <div class="card">
+        <div class="slabel">Reading history</div>
+        ${readings.length===0?'<div class="empty">No readings yet.</div>':readings.map(r=>{
+          const bc=r.status==='Approved'?'b-paid':r.status==='Rejected'?'b-rejected':'b-review';
+          return `<div class="eb-history-row">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start">
+              <div>
+                <div style="font-weight:600">${r.billing_period}</div>
+                <div style="font-size:12px;color:var(--text2)">${r.units_used} units used · ${r.occupants} people</div>
+                <div style="font-size:12px;color:var(--text2)">Submitted by ${r.submitter_name}</div>
+              </div>
+              <div style="text-align:right">
+                <span class="badge ${bc}">${r.status}</span>
+                ${r.status==='Approved'?`<div style="font-size:13px;font-weight:700;margin-top:4px;color:var(--green)">₹${r.per_person.toLocaleString('en-IN')}/person</div>`:''}
+              </div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`;
+  }catch{el.innerHTML='<div class="empty">Could not load EB data.</div>';}
+}
+
+async function submitEBReading(){
+  const units=document.getElementById('ebUnits')?.value;
+  const period=document.getElementById('ebPeriod')?.value?.trim();
+  if(!units||!period){alert('Please enter units and billing period.');return;}
+  try{
+    const r=await fetch(`${API}/api/students/eb`,{method:'POST',headers:authH(),body:JSON.stringify({current_units:parseFloat(units),billing_period:period})});
+    const data=await r.json();
+    if(!r.ok)throw new Error(data.error);
+    alert(`Reading submitted! Units used: ${data.units_used}. Awaiting admin approval.`);
+    renderEB();
+  }catch(e){alert(e.message);}
+}
+
+// ══════════════════════════════════════════════════════════
+// TAB 4 — PROFILE
+// ══════════════════════════════════════════════════════════
+function renderProfile(){
+  const el=document.getElementById('pg3');
+  el.innerHTML=`
+    <div class="card">
+      <div class="slabel">My details</div>
+      <div class="inforow"><span>Name</span><span>${me.name}</span></div>
+      <div class="inforow"><span>Roll number</span><span style="font-family:var(--mono)">${me.roll}</span></div>
+      <div class="inforow"><span>Room</span><span>${me.room_number||'—'} (${me.room_type||'—'})</span></div>
+      <div class="inforow"><span>Phone</span><span>+91 ${me.phone}</span></div>
+      <div class="inforow"><span>Monthly rent</span><span style="font-weight:700">₹${(me.monthly_rent||0).toLocaleString('en-IN')}</span></div>
+      <div class="inforow"><span>Joined</span><span>${me.joined_at||'—'}</span></div>
+      <div class="inforow"><span>Last login</span><span>${me.last_login||'—'}</span></div>
+    </div>
+    <div class="card">
+      <div class="slabel">Advance & financials</div>
+      <div class="inforow"><span>Advance paid</span><span>₹${(me.advance_paid||0).toLocaleString('en-IN')}</span></div>
+      <div class="inforow"><span>Amount used</span><span>₹${(me.advance_used||0).toLocaleString('en-IN')}</span></div>
+      <div class="inforow"><span>Remaining</span><span>₹${(me.advance_remaining||0).toLocaleString('en-IN')}</span></div>
+      <div class="inforow"><span>Held by hostel</span><span>₹${(me.base_hold||5000).toLocaleString('en-IN')}</span></div>
+      <div class="inforow"><span style="font-weight:600">Refundable on exit</span><span style="color:var(--green);font-weight:700">₹${(me.refundable||0).toLocaleString('en-IN')}</span></div>
+    </div>
+    <div class="card">
+      <div class="slabel">Request a change</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:1rem">To update your room or phone number, submit a request. Admin will review and approve.</p>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-o" onclick="requestChange('phone')" style="font-size:13px">Change phone</button>
+        <button class="btn btn-o" onclick="requestChange('room_id')" style="font-size:13px">Change room</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="slabel">Change password</div>
+      <div class="f"><label>Current password</label><input id="cpCurrent" type="password" placeholder="Current password"/></div>
+      <div class="f"><label>New password</label><input id="cpNew" type="password" placeholder="At least 6 characters"/></div>
+      <div id="cpBanner" class="banner"></div>
+      <button class="btn btn-p" onclick="changePassword()">Update password</button>
+    </div>`;
+}
+
+async function requestChange(field){
+  const label=field==='phone'?'new phone number':'new room number';
+  const val=prompt(`Enter your ${label}:`);
+  if(!val||!val.trim())return;
+  const reason=prompt('Reason for this change:');
+  if(!reason||!reason.trim())return;
+  try{
+    const r=await fetch(`${API}/api/students/change-request`,{method:'POST',headers:authH(),body:JSON.stringify({field,new_value:val.trim(),reason:reason.trim()})});
+    const data=await r.json();
+    if(!r.ok)throw new Error(data.error);
+    alert('Change request submitted. Admin will review it shortly.');
+  }catch(e){alert(e.message);}
+}
+
+async function changePassword(){
+  const curr=document.getElementById('cpCurrent').value;
+  const nw=document.getElementById('cpNew').value;
+  if(!curr||!nw){alert('Both fields required.');return;}
+  try{
+    const r=await fetch(`${API}/api/students/password`,{method:'PATCH',headers:authH(),body:JSON.stringify({current_password:curr,new_password:nw})});
+    const data=await r.json();
+    if(!r.ok)throw new Error(data.error);
+    const b=document.getElementById('cpBanner');b.textContent='Password updated!';b.className='banner s';
+    document.getElementById('cpCurrent').value='';document.getElementById('cpNew').value='';
+  }catch(e){const b=document.getElementById('cpBanner');b.textContent=e.message;b.className='banner e';}
+}
+
+function downloadReceipt(t){
+  const propName = cfg.prop_name || 'HostelPay';
+  const propAddr = cfg.prop_address || '';
+  const date = new Date().toLocaleDateString('en-IN',{dateStyle:'long'});
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"/>
+  <title>Receipt - ${t.fee_type} ${t.month}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1a1a18;padding:40px;max-width:500px;margin:0 auto}
+    .header{text-align:center;margin-bottom:32px;padding-bottom:20px;border-bottom:1.5px solid #e0e0de}
+    .logo{font-size:24px;font-weight:700;color:#185FA5;margin-bottom:4px}
+    .prop{font-size:14px;color:#6b6b67}
+    .receipt-title{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6b6b67;text-align:center;margin-bottom:24px}
+    .row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid #eeede8;font-size:14px}
+    .row:last-child{border-bottom:none}
+    .label{color:#6b6b67}.value{font-weight:500}
+    .amount-row{display:flex;justify-content:space-between;padding:14px 0;border-top:1.5px solid #1a1a18;margin-top:8px;font-size:17px;font-weight:700}
+    .status{display:inline-block;background:#EAF3DE;color:#3B6D11;padding:3px 12px;border-radius:999px;font-size:12px;font-weight:600;margin-left:8px}
+    .footer{margin-top:32px;padding-top:16px;border-top:0.5px solid #eeede8;font-size:11px;color:#9b9b97;text-align:center;line-height:1.8}
+    @media print{body{padding:20px}button{display:none}}
+  </style>
+  </head><body>
+  <div class="header">
+    <div class="logo">Hostel<span style="color:#185FA5">Pay</span></div>
+    <div class="prop">${propName}</div>
+    ${propAddr?`<div class="prop">${propAddr}</div>`:''}
+  </div>
+  <div class="receipt-title">Payment Receipt <span class="status">Paid</span></div>
+  <div class="row"><span class="label">Receipt date</span><span class="value">${date}</span></div>
+  <div class="row"><span class="label">Student name</span><span class="value">${me.name}</span></div>
+  <div class="row"><span class="label">Roll number</span><span class="value" style="font-family:monospace">${me.roll}</span></div>
+  <div class="row"><span class="label">Room</span><span class="value">${t.room}</span></div>
+  <div class="row"><span class="label">Phone</span><span class="value">+91 ${me.phone}</span></div>
+  <div class="row"><span class="label">Fee type</span><span class="value">${t.fee_type}</span></div>
+  <div class="row"><span class="label">Period</span><span class="value">${t.month}</span></div>
+  <div class="row"><span class="label">Payment date</span><span class="value">${t.created_at.split(' ')[0]}</span></div>
+  <div class="row"><span class="label">Confirmed on</span><span class="value">${t.paid_on||'—'}</span></div>
+  ${t.utr?`<div class="row"><span class="label">UTR / Transaction ID</span><span class="value" style="font-family:monospace">${t.utr}</span></div>`:''}
+  <div class="amount-row"><span>Amount paid</span><span>₹${t.amount.toLocaleString('en-IN')}</span></div>
+  <div style="text-align:center;margin-top:20px">
+    <button onclick="window.print()" style="padding:10px 24px;background:#185FA5;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">Print / Save as PDF</button>
+  </div>
+  <div class="footer">
+    This is a computer-generated receipt.<br>
+    ${propName} · Generated by HostelPay
+  </div>
+  </body></html>`;
+
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+  // Auto-trigger print dialog after content loads
+  win.onload = () => setTimeout(() => win.print(), 300);
+}
+
+boot();
+</script>
+</body>
+</html>
